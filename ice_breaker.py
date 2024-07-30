@@ -1,11 +1,12 @@
+import os
 from langchain.prompts.prompt import PromptTemplate
-from langchain_openai import ChatOpenAI
 
-information = """"
-As a Lead Engineer at Carrier, I design and develop scalable and responsive web and mobile applications using React, React Native, Svelte, Node, and Serverless technologies. I also leverage my AWS Solutions Architect certification to build secure and efficient cloud infrastructure and deployment pipelines using AWS services such as SAM, S3, Cloudfront, and Cloudformation.
+# from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
+from langchain_core.output_parsers import StrOutputParser
 
-With over 10 years of experience in full-stack development, I have helped various startups and established companies create and release applications from scratch in production. I have also contributed to multiple open-source projects. I am passionate about learning new technologies and frameworks and sharing my knowledge and skills with others.
-"""
+from third_parties.linkedin import scrape_linkedin_profile
+
 
 if __name__ == "__main__":
     print("Hello LangChain!")
@@ -21,13 +22,21 @@ if __name__ == "__main__":
         input_variables=["information"], template=summary_template
     )
 
-    llm = ChatOpenAI(
+    # llm = ChatOpenAI(
+    #     temperature=0,
+    #     model="gpt-3.5-turbo",
+    # )
+    llm = ChatOllama(
         temperature=0,
-        model="gpt-3.5-turbo",
+        model="mistral",
     )
 
-    chain = summary_prompt_template | llm
+    chain = summary_prompt_template | llm | StrOutputParser()
 
-    res = chain.invoke(input={"information": information})
+    linkedin_data = scrape_linkedin_profile(
+        linkedin_profile_url=os.environ["LINKEDIN_PROFILE_URL"]
+    )
+
+    res = chain.invoke(input={"information": linkedin_data})
 
     print(res)
